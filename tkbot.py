@@ -8,7 +8,8 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 TICKET_CHANNEL_ID = 1466986768652963983
 PENDING_CAT_ID = 1490338802261299312
 RESOLVED_CAT_ID = 1490339576689201212
-STAFF_ROLE_ID = 1459696673239470338
+
+STAFF_ROLE_IDS = [1459696673239470338, 1459700251295223994]
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -24,15 +25,18 @@ class TicketModal(ui.Modal, title="📨 建立工單"):
         await interaction.response.defer(ephemeral=True)
         guild = interaction.guild
         category = guild.get_channel(PENDING_CAT_ID)
-        staff_role = guild.get_role(STAFF_ROLE_ID)
         
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(read_messages=False),
             interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True),
             guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True)
         }
-        if staff_role:
-            overwrites[staff_role] = discord.PermissionOverwrite(read_messages=True, send_messages=True)
+        
+
+        for role_id in STAFF_ROLE_IDS:
+            staff_role = guild.get_role(role_id)
+            if staff_role:
+                overwrites[staff_role] = discord.PermissionOverwrite(read_messages=True, send_messages=True)
         
         channel_name = f"ticket-{interaction.user.name}"
         ticket_channel = await guild.create_text_channel(name=channel_name, category=category, overwrites=overwrites)
@@ -105,7 +109,7 @@ async def on_ready():
         embed = discord.Embed(
             title="📨 票務系統 | Ticket System", 
             description="""歡迎使用支援服務，請點擊下方按鈕以開啟專屬工單。
-            
+
 **⚠️ 開票須知：**
 1. 開啟工單前，請務必先詳閱伺服器規範。
 2. 進入頻道後請詳細說明事由，**請勿惡意標記 (@) 管理團隊**。
@@ -120,23 +124,22 @@ async def on_ready():
 async def cmd_new(ctx):
     guild = ctx.guild
     category = guild.get_channel(PENDING_CAT_ID)
-    staff_role = guild.get_role(STAFF_ROLE_ID)
     
     overwrites = {
         guild.default_role: discord.PermissionOverwrite(read_messages=False),
         ctx.author: discord.PermissionOverwrite(read_messages=True, send_messages=True),
         guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True)
     }
-    if staff_role:
-        overwrites[staff_role] = discord.PermissionOverwrite(read_messages=True, send_messages=True)
+    
+
+    for role_id in STAFF_ROLE_IDS:
+        staff_role = guild.get_role(role_id)
+        if staff_role:
+            overwrites[staff_role] = discord.PermissionOverwrite(read_messages=True, send_messages=True)
         
     ticket_channel = await guild.create_text_channel(name=f"ticket-{ctx.author.name}", category=category, overwrites=overwrites)
     
-    embed = discord.Embed(
-        title="**工單已建立!**", 
-        description="**📄 歡迎使用工單系統。**\n**管理團隊將迅速為您服務!** \n> **👥使用者:** " + ctx.author.mention, 
-        color=discord.Color.blue()
-    )
+    embed = discord.Embed(title="**工單已建立!**", description=f"📄 歡迎使用工單系統。\n管理團隊將迅速為您服務! \n> **👥使用者:** {ctx.author.mention}", color=discord.Color.blue())
     await ticket_channel.send(embed=embed, view=TicketControlView())
     await ctx.send(f"**已為您開啟工單頻道：{ticket_channel.mention}**")
 
