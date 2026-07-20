@@ -14,7 +14,7 @@ intents.message_content = True
 intents.members = True
 bot = commands.Bot(command_prefix="$", intents=intents)
 
-class TicketModal(ui.Modal, title="📨建立工單"):
+class TicketModal(ui.Modal, title="📨 建立工單"):
     event = ui.TextInput(label="原因及事件", placeholder="請簡述您的問題...", max_length=100)
     reason = ui.TextInput(label="詳細說明", style=discord.TextStyle.paragraph, placeholder="請詳細描述事件經過...", max_length=1000)
     proof = ui.TextInput(label="上傳附件連結 (選填)", placeholder="可提供圖片或雲端連結，限10KB以內", required=False, max_length=500)
@@ -35,7 +35,7 @@ class TicketModal(ui.Modal, title="📨建立工單"):
         
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        embed = discord.Embed(title="# ✅工單已建立\n## 請耐心等待管理人員受理!", color=discord.Color.blue())
+        embed = discord.Embed(title=" ✅ 工單已建立\n 請耐心等待管理人員受理!", color=discord.Color.blue())
         embed.description = f"**時間:** {current_time}\n**使用者:** {interaction.user.mention}\n**事件:** {self.event.value}\n**原因:** {self.reason.value}\n**附件證明:** {self.proof.value if self.proof.value else '無'}"
         
         view = TicketControlView()
@@ -46,7 +46,7 @@ class TicketLaunchView(ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @ui.button(label="📩開啟工單", style=discord.ButtonStyle.green, custom_id="launch_ticket")
+    @ui.button(label="📩 開啟工單", style=discord.ButtonStyle.green, custom_id="launch_ticket")
     async def launch(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.send_modal(TicketModal())
 
@@ -54,12 +54,12 @@ class TicketControlView(ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @ui.button(label="❌關閉工單", style=discord.ButtonStyle.blurple, custom_id="close_ticket")
+    @ui.button(label="❌ 關閉工單", style=discord.ButtonStyle.blurple, custom_id="close_ticket")
     async def close(self, interaction: discord.Interaction, button: ui.Button):
         category = interaction.guild.get_channel(RESOLVED_CAT_ID)
         await interaction.channel.edit(category=category)
         
-        embed = discord.Embed(title="**📨工單管理選項**", description="**請選擇後續處理方式：**", color=discord.Color.orange())
+        embed = discord.Embed(title="**📨 工單管理選項**", description="**請選擇後續處理方式：**", color=discord.Color.orange())
         view = TicketPostCloseView()
         await interaction.response.send_message(embed=embed, view=view)
 
@@ -123,7 +123,7 @@ async def cmd_new(ctx):
     }
     ticket_channel = await guild.create_text_channel(name=f"ticket-{ctx.author.name}", category=category, overwrites=overwrites)
     
-    embed = discord.Embed(title="**工單已建立!**", description=f"## 📄歡迎使用工單系統。\n## 管理團隊將迅速為您服務! \n> ###**👥使用者:** {ctx.author.mention}", color=discord.Color.blue())
+    embed = discord.Embed(title="**工單已建立!**", description=f"## 📄 歡迎使用工單系統。\n## 管理團隊將迅速為您服務! \n> ###**👥使用者:** {ctx.author.mention}", color=discord.Color.blue())
     await ticket_channel.send(embed=embed, view=TicketControlView())
     await ctx.send(f"**已為您開啟工單頻道：{ticket_channel.mention}**")
 
@@ -131,17 +131,17 @@ async def cmd_new(ctx):
 async def cmd_user(ctx, member: discord.Member):
     if "ticket-" in ctx.channel.name:
         await ctx.channel.set_permissions(member, read_messages=True, send_messages=True)
-        await ctx.send(f"**已成功將 {member.mention} 邀請至本工單頻道。**")
+        await ctx.send(f"**✅ 已成功將 {member.mention} 邀請至本工單頻道。**")
     else:
-        await ctx.send("**⚠此指令只能在工單頻道內使用!**", delete_after=5)
+        await ctx.send("**⚠ 此指令只能在工單頻道內使用!**", delete_after=5)
 
 @bot.command(name="close")
 async def cmd_close(ctx):
     if "ticket-" in ctx.channel.name:
-        embed = discord.Embed(title="**📨工單管理選項**", description="**請選擇後續處理方式：**", color=discord.Color.orange())
+        embed = discord.Embed(title="**📨 工單管理選項**", description="**請選擇後續處理方式：**", color=discord.Color.orange())
         await ctx.send(embed=embed, view=TicketPostCloseView())
     else:
-        await ctx.send("此指令只能在工單頻道內使用。", delete_after=5)
+        await ctx.send("⚠ 此指令只能在工單頻道內使用。", delete_after=5)
 
 import logging
 logging.basicConfig(level=logging.INFO)
