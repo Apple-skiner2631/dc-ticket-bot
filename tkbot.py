@@ -40,13 +40,13 @@ class TicketModal(ui.Modal, title="📨建立工單"):
         
         view = TicketControlView()
         await ticket_channel.send(embed=embed, view=view)
-        await interaction.followup.send(f"工單已成功建立：{ticket_channel.mention}", ephemeral=True)
+        await interaction.followup.send(f"**工單已成功建立：{ticket_channel.mention}**", ephemeral=True)
 
 class TicketLaunchView(ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @ui.button(label="開票", style=discord.ButtonStyle.green, custom_id="launch_ticket")
+    @ui.button(label="📩開啟工單", style=discord.ButtonStyle.green, custom_id="launch_ticket")
     async def launch(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.send_modal(TicketModal())
 
@@ -54,12 +54,12 @@ class TicketControlView(ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @ui.button(label="關閉工單", style=discord.ButtonStyle.blurple, custom_id="close_ticket")
+    @ui.button(label="❌關閉工單", style=discord.ButtonStyle.blurple, custom_id="close_ticket")
     async def close(self, interaction: discord.Interaction, button: ui.Button):
         category = interaction.guild.get_channel(RESOLVED_CAT_ID)
         await interaction.channel.edit(category=category)
         
-        embed = discord.Embed(title="工單管理選項", description="**請選擇後續處理方式：**", color=discord.Color.orange())
+        embed = discord.Embed(title="**📨工單管理選項**", description="**請選擇後續處理方式：**", color=discord.Color.orange())
         view = TicketPostCloseView()
         await interaction.response.send_message(embed=embed, view=view)
 
@@ -67,16 +67,16 @@ class TicketPostCloseView(ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @ui.button(label="1. 關閉工單", style=discord.ButtonStyle.secondary, custom_id="opt_close")
+    @ui.button(label="❌ 關閉工單", style=discord.ButtonStyle.secondary, custom_id="opt_close")
     async def opt_close(self, interaction: discord.Interaction, button: ui.Button):
-        await interaction.response.send_message("工單已保持關閉狀態。", ephemeral=True)
+        await interaction.response.send_message("**⛔工單已保持關閉狀態。**", ephemeral=True)
 
-    @ui.button(label="2. 刪除頻道", style=discord.ButtonStyle.danger, custom_id="opt_delete")
+    @ui.button(label="⛔ 刪除頻道", style=discord.ButtonStyle.danger, custom_id="opt_delete")
     async def opt_delete(self, interaction: discord.Interaction, button: ui.Button):
-        await interaction.response.send_message("頻道即將在 5 秒後刪除...")
+        await interaction.response.send_message("**⚠頻道即將在 5 秒後刪除...**")
         await interaction.channel.delete()
 
-    @ui.button(label="3. 匯出對話檔案", style=discord.ButtonStyle.success, custom_id="opt_export")
+    @ui.button(label="📥 匯出對話檔案", style=discord.ButtonStyle.success, custom_id="opt_export")
     async def opt_export(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.defer()
         log_text = ""
@@ -98,7 +98,18 @@ async def on_ready():
     channel = bot.get_channel(TICKET_CHANNEL_ID)
     if channel:
         await channel.purge(limit=10)
-        embed = discord.Embed(title="聯絡支援群組", description="請點擊下方按鈕以建立新的服務工單", color=discord.Color.green())
+        embed = discord.Embed(
+            title="📨 票務系統 | Ticket System", 
+            description="""歡迎使用支援服務，請點擊下方按鈕以開啟專屬工單。
+            
+**⚠️ 開票須知：**
+1. 開啟工單前，請務必先詳閱伺服器規範。
+2. 進入頻道後請詳細說明事由，**請勿惡意惡意標記 (@) 管理團隊**。
+3. 請勿無故濫用票務系統，非必要請勿隨意開票。
+
+*管理團隊將會盡快為您處理，感謝您的配合！*""", 
+            color=discord.Color.green()
+        )
         await channel.send(embed=embed, view=TicketLaunchView())
 
 @bot.command(name="new")
@@ -112,22 +123,22 @@ async def cmd_new(ctx):
     }
     ticket_channel = await guild.create_text_channel(name=f"ticket-{ctx.author.name}", category=category, overwrites=overwrites)
     
-    embed = discord.Embed(title="工單已建立", description=f"歡迎使用文字指令建立的工單系統。\n**使用者:** {ctx.author.mention}", color=discord.Color.blue())
+    embed = discord.Embed(title="**工單已建立!**", description=f"## 📄歡迎使用工單系統。\n## 管理團隊將迅速為您服務! \n> ###**👥使用者:** {ctx.author.mention}", color=discord.Color.blue())
     await ticket_channel.send(embed=embed, view=TicketControlView())
-    await ctx.send(f"已為您開啟工單頻道：{ticket_channel.mention}")
+    await ctx.send(f"**已為您開啟工單頻道：{ticket_channel.mention}**")
 
 @bot.command(name="user")
 async def cmd_user(ctx, member: discord.Member):
     if "ticket-" in ctx.channel.name:
         await ctx.channel.set_permissions(member, read_messages=True, send_messages=True)
-        await ctx.send(f"已成功將 {member.mention} 邀請至本工單頻道。")
+        await ctx.send(f"**已成功將 {member.mention} 邀請至本工單頻道。**")
     else:
-        await ctx.send("此指令只能在工單頻道內使用。", delete_after=5)
+        await ctx.send("**⚠此指令只能在工單頻道內使用!**", delete_after=5)
 
 @bot.command(name="close")
 async def cmd_close(ctx):
     if "ticket-" in ctx.channel.name:
-        embed = discord.Embed(title="工單管理選項", description="**請選擇後續處理方式：**", color=discord.Color.orange())
+        embed = discord.Embed(title="**📨工單管理選項**", description="**請選擇後續處理方式：**", color=discord.Color.orange())
         await ctx.send(embed=embed, view=TicketPostCloseView())
     else:
         await ctx.send("此指令只能在工單頻道內使用。", delete_after=5)
