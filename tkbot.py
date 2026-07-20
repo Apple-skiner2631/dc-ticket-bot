@@ -132,4 +132,6 @@ async def cmd_close(ctx):
     else:
         await ctx.send("此指令只能在工單頻道內使用。", delete_after=5)
 
+import logging
+logging.basicConfig(level=logging.INFO)
 bot.run(TOKEN)
